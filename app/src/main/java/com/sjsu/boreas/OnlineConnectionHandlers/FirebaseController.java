@@ -84,7 +84,11 @@ public class FirebaseController {
     }
 
     private static String enc(String s) {
-        return URLEncoder.encode(s, StandardCharsets.UTF_8);
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (Exception e) {
+            return s;
+        }
     }
 
     private static String chatId(String uid1, String uid2) {
@@ -111,14 +115,14 @@ public class FirebaseController {
             body.put("name", myUser.getName());
             body.put("latitude", myUser.getLatitude());
             body.put("longitude", myUser.getLongitude());
-            body.put("public_key", myUser.getPublicKey());
+            body.put("public_key", myUser.publicKey);
 
             // If this User is actually a LoggedInUser at registration time, these fields
             // are set via the calling code in RegisterActivity -> it uses LoggedInUser.
             if (myUser instanceof LoggedInUser) {
                 LoggedInUser liu = (LoggedInUser) myUser;
                 body.put("password", liu.getPassword());
-                body.put("private_key", liu.getPrivateKey());
+                body.put("private_key", liu.privateKey);
             }
 
             String url = SUPABASE_URL + "/rest/v1/boreas_users";

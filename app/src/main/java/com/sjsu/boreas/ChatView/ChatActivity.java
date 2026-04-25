@@ -620,6 +620,66 @@ public class ChatActivity extends AppCompatActivity implements EventListener, Fi
         });
     }
 
+    private void startOnlinePolling() {
+        if (onlinePollingStarted) return;
+        onlinePollingStarted = true;
+
+        onlinePollHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (mode == SendMode.ONLINE && myChatPartner != null && MainActivity.currentUser != null) {
+                        FirebaseController.fetchLatestMessages(myChatPartner.getUid(), 25, new FirebaseController.MessageFetchCallback() {
+                            @Override
+                            public void onSuccess(final ArrayList<ChatMessage> messages) {
+                                if (messages == null || messages.size() == 0) return;
+
+                                // Server returns newest first; render oldest->newest
+                                for (int i = messages.size() - 1; i >= 0; i--) {
+                                    ChatMessage cm = messages.get(i);
+                                    if (cm == null || cm.mssgId == null) continue;
+                                    if (seenOnlineMessageIds.contains(cm.mssgId)) continue;
+
+                                    seenOnlineMessageIds.add(cm.mssgId);
+                                    addMessageOnScreen(cm);
+
+                                    // Save locally (best effort)
+                                    final ChatMessage toSave = cm.isEncrypted ? EncryptionController.getInstance().getDecryptedMessage(cm) : cm;
+                                    AsyncTask.execute(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                localDatabaseReference.saveChatMessageLocally(toSave);
+                                            } catch (Exception ignored) {}
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Log.e(TAG, SUB_TAG + "online poll error: " + e);
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, SUB_TAG + "online poll exception: " + e);
+                } finally {
+                    if (onlinePollingStarted) {
+                        onlinePollHandler.postDelayed(this, 3000);
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    private void stopOnlinePolling() {
+        try {
+            onlinePollingStarted = false;
+            onlinePollHandler.removeCallbacksAndMessages(null);
+        } catch (Exception ignored) {}
+    }
+
     @Override
     protected void onDestroy() {
         stopOnlinePolling();
