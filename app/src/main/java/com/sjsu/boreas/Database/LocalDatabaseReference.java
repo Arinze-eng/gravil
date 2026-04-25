@@ -96,6 +96,16 @@ public class LocalDatabaseReference implements EventEmitter{
                     Log.e(TAG, SUB_TAG+"User is already registered");
                     return;
                 }
+                wipeAllPreviousUserData();
+                Log.e(TAG, SUB_TAG+"Returned from register-----------------");
+                database.loggedInUserDao().insertNewUser(user);
+                FirebaseController.synchContactsForUser(user, null);
+                user.logUserIn();
+                Log.e(TAG, SUB_TAG+"-----Just changed the state to login---------"+user);
+                database.loggedInUserDao().logUserIn(user);
+            }
+        });
+    }
 
     // Synchronous variant used when UI must navigate immediately after registration.
     // Must be called off the UI thread.
@@ -111,17 +121,8 @@ public class LocalDatabaseReference implements EventEmitter{
         database.loggedInUserDao().insertNewUser(user);
         user.logUserIn();
         database.loggedInUserDao().logUserIn(user);
+        // Best-effort sync contacts from Supabase
         try { FirebaseController.synchContactsForUser(user, null); } catch (Exception ignored) {}
-    }
-                wipeAllPreviousUserData();
-                Log.e(TAG, SUB_TAG+"Returned from register-----------------");
-                database.loggedInUserDao().insertNewUser(user);
-                FirebaseController.synchContactsForUser(user, null);
-                user.logUserIn();
-                Log.e(TAG, SUB_TAG+"-----Just changed the state to login---------"+user);
-                database.loggedInUserDao().logUserIn(user);
-            }
-        });
     }
 
     //Check if the given user is already registered or not
