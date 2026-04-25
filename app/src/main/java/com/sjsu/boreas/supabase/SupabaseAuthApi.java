@@ -15,12 +15,17 @@ public class SupabaseAuthApi {
     private final OkHttpClient http = new OkHttpClient();
 
     public JSONObject signUp(String name, String email, String password) throws IOException {
-        JSONObject body = new JSONObject();
-        body.put("email", email);
-        body.put("password", password);
-        JSONObject data = new JSONObject();
-        data.put("name", name);
-        body.put("data", data);
+        JSONObject body;
+        try {
+            body = new JSONObject();
+            body.put("email", email);
+            body.put("password", password);
+            JSONObject data = new JSONObject();
+            data.put("name", name);
+            body.put("data", data);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
 
         String url = SupabaseConfig.SUPABASE_URL + "/auth/v1/signup";
         Request req = new Request.Builder()
@@ -41,9 +46,14 @@ public class SupabaseAuthApi {
     }
 
     public JSONObject signInWithPassword(String email, String password) throws IOException {
-        JSONObject body = new JSONObject();
-        body.put("email", email);
-        body.put("password", password);
+        JSONObject body;
+        try {
+            body = new JSONObject();
+            body.put("email", email);
+            body.put("password", password);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
 
         String url = SupabaseConfig.SUPABASE_URL + "/auth/v1/token?grant_type=password";
         Request req = new Request.Builder()
@@ -92,7 +102,7 @@ public class SupabaseAuthApi {
                 .build();
 
         try (Response resp = http.newCall(req).execute()) {
-            // ignore body
+            // ignore
         }
     }
 }
