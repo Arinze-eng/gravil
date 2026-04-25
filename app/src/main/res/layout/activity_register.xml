@@ -22,7 +22,7 @@
         android:paddingBottom="@dimen/space_large">
 
         <TextView
-            android:id="@+id/boreas-welcome"
+            android:id="@+id/boreas_welcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -49,7 +49,7 @@
                 android:src="@drawable/ic_send" />
 
             <TextView
-                android:id="@+id/boreas-title"
+                android:id="@+id/boreas_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/space_mini"
