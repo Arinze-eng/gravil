@@ -141,7 +141,7 @@ public class SSLVPNService extends VpnService implements Handler.Callback, Runna
 
         // 2. Send Payload (WebSocket Upgrade)
         OutputStream socketOut = sslSocket.getOutputStream();
-        InputStream socketIn = sslSocket.getInputStream();
+        final InputStream socketIn = sslSocket.getInputStream();
         
         String finalPayload = mPayload.replace("[ua]", "Mozilla/5.0 (Android)");
         socketOut.write(finalPayload.getBytes(StandardCharsets.UTF_8));
@@ -187,7 +187,7 @@ public class SSLVPNService extends VpnService implements Handler.Callback, Runna
 
         // 5. Packet Forwarding Loop
         FileInputStream vpnInput = new FileInputStream(mInterface.getFileDescriptor());
-        FileOutputStream vpnOutput = new FileOutputStream(mInterface.getFileDescriptor());
+        final FileOutputStream vpnOutput = new FileOutputStream(mInterface.getFileDescriptor());
 
         // Start a separate thread for reading from the socket and writing to the VPN interface
         Thread receiveThread = new Thread(new Runnable() {
