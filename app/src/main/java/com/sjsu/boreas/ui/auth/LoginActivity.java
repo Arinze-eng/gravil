@@ -73,18 +73,7 @@ public class LoginActivity extends AppCompatActivity {
                         return;
                     }
 
-                    String confirmedAt = me.optString("email_confirmed_at", null);
-                    if (confirmedAt == null || confirmedAt.equals("null") || confirmedAt.isEmpty()) {
-                        runOnUiThread(() -> {
-                            btnLogin.setEnabled(true);
-                            Intent i = new Intent(this, VerifyEmailActivity.class);
-                            i.putExtra("email", e);
-                            startActivity(i);
-                            finish();
-                        });
-                        return;
-                    }
-
+                    // Email verification disabled: allow login immediately
                     String userId = me.getString("id");
 
                     SessionManager sm = new SessionManager(this);
