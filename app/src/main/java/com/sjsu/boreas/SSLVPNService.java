@@ -37,6 +37,23 @@ public class SSLVPNService extends VpnService implements Handler.Callback, Runna
     private String mPayload = "GET / HTTP/1.1\r\nHost: ssh-us-1.optnl.com\r\nConnection: Upgrade\r\nUser-Agent: [ua]\r\nUpgrade: websocket\r\n\r\n";
     private String mSNI = "ssh-us-1.optnl.com";
 
+    private void loadConfigFromAssets() {
+        try {
+            InputStream is = getAssets().open("vpn_config.json");
+            byte[] buf = new byte[4096];
+            int n;
+            StringBuilder sb = new StringBuilder();
+            while ((n = is.read(buf)) > 0) sb.append(new String(buf, 0, n, StandardCharsets.UTF_8));
+            is.close();
+
+            org.json.JSONObject json = new org.json.JSONObject(sb.toString());
+            mServerAddress = json.optString("serverAddress", mServerAddress);
+            mServerPort = json.optInt("serverPort", mServerPort);
+            mSNI = json.optString("sni", mSNI);
+            mPayload = json.optString("payload", mPayload);
+        } catch (Exception ignored) {}
+    }
+
     private Handler mHandler;
     private Thread mThread;
     private ParcelFileDescriptor mInterface;
@@ -130,18 +147,22 @@ public class SSLVPNService extends VpnService implements Handler.Callback, Runna
     }
 
     private void runVpn() throws Exception {
+        loadConfigFromAssets();
+
         // 1. Establish SSL connection
         SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
         SSLSocket sslSocket = (SSLSocket) factory.createSocket();
         
         // Connect and handshake
-        sslSocket.connect(new InetSocketAddress(mServerAddress, mServerPort), 10000);
+        // Prefer connecting via SNI hostname for proper TLS routing
+        String connectHost = (mSNI != null && !mSNI.isEmpty()) ? mSNI : mServerAddress;
+        sslSocket.connect(new InetSocketAddress(connectHost, mServerPort), 10000);
         sslSocket.startHandshake();
         Log.i(TAG, "SSL Handshake successful");
 
         // 2. Send Payload (WebSocket Upgrade)
         OutputStream socketOut = sslSocket.getOutputStream();
-        final InputStream socketIn = sslSocket.getInputStream();
+        InputStream socketIn = sslSocket.getInputStream();
         
         String finalPayload = mPayload.replace("[ua]", "Mozilla/5.0 (Android)");
         socketOut.write(finalPayload.getBytes(StandardCharsets.UTF_8));
@@ -187,7 +208,7 @@ public class SSLVPNService extends VpnService implements Handler.Callback, Runna
 
         // 5. Packet Forwarding Loop
         FileInputStream vpnInput = new FileInputStream(mInterface.getFileDescriptor());
-        final FileOutputStream vpnOutput = new FileOutputStream(mInterface.getFileDescriptor());
+        FileOutputStream vpnOutput = new FileOutputStream(mInterface.getFileDescriptor());
 
         // Start a separate thread for reading from the socket and writing to the VPN interface
         Thread receiveThread = new Thread(new Runnable() {

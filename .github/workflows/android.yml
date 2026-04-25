@@ -3,38 +3,22 @@ name: Android CI
 on:
   push:
     branches: ["main"]
-  pull_request:
-    branches: ["main"]
   workflow_dispatch:
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Cache Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Build debug APK
-        run: ./gradlew --no-daemon clean assembleDebug
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v3
+      - run: chmod +x ./gradlew
+      - run: ./gradlew --no-daemon clean assembleDebug
+      - uses: actions/upload-artifact@v4
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/*.apk
