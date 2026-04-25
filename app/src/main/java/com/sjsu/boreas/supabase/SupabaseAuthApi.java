@@ -73,6 +73,34 @@ public class SupabaseAuthApi {
         }
     }
 
+    public JSONObject resendSignupVerificationEmail(String email) throws IOException {
+        // Supabase Auth: POST /auth/v1/resend?type=signup
+        JSONObject body;
+        try {
+            body = new JSONObject();
+            body.put("email", email);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+
+        String url = SupabaseConfig.SUPABASE_URL + "/auth/v1/resend?type=signup";
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("apikey", SupabaseConfig.SUPABASE_ANON_KEY)
+                .addHeader("Content-Type", "application/json")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+
+        try (Response resp = http.newCall(req).execute()) {
+            String raw = resp.body() != null ? resp.body().string() : "{}";
+            JSONObject out = new JSONObject(raw);
+            out.put("http_status", resp.code());
+            return out;
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
+
     public JSONObject getUser(String accessToken) throws IOException {
         String url = SupabaseConfig.SUPABASE_URL + "/auth/v1/user";
         Request req = new Request.Builder()

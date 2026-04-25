@@ -77,7 +77,9 @@ public class LoginActivity extends AppCompatActivity {
                     if (confirmedAt == null || confirmedAt.equals("null") || confirmedAt.isEmpty()) {
                         runOnUiThread(() -> {
                             btnLogin.setEnabled(true);
-                            startActivity(new Intent(this, VerifyEmailActivity.class));
+                            Intent i = new Intent(this, VerifyEmailActivity.class);
+                            i.putExtra("email", e);
+                            startActivity(i);
                             finish();
                         });
                         return;

@@ -63,7 +63,9 @@ public class SignupActivity extends AppCompatActivity {
                     }
 
                     runOnUiThread(() -> {
-                        startActivity(new Intent(this, VerifyEmailActivity.class));
+                        Intent i = new Intent(this, VerifyEmailActivity.class);
+                        i.putExtra("email", e);
+                        startActivity(i);
                         finish();
                     });
 

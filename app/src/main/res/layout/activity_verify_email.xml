@@ -17,7 +17,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="We sent a verification email. Open it and confirm before you can sign in." />
+        android:text="We sent a verification email. If you can’t find it, check Spam/Junk. You can also resend it below." />
+
+    <EditText
+        android:id="@+id/email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Email used to sign up"
+        android:inputType="textEmailAddress" />
+
+    <Button
+        android:id="@+id/btn_resend"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Resend verification email" />
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="#2E7D32" />
 
     <Button
         android:id="@+id/btn_back"
