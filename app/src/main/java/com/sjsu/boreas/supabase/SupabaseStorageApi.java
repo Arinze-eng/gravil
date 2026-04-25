@@ -36,8 +36,13 @@ public class SupabaseStorageApi {
 
     public String createSignedUrl(String accessToken, String bucket, String path, int expiresInSeconds) throws IOException {
         String url = SupabaseConfig.SUPABASE_URL + "/storage/v1/object/sign/" + bucket + "/" + path;
-        JSONObject body = new JSONObject();
-        body.put("expiresIn", expiresInSeconds);
+        JSONObject body;
+        try {
+            body = new JSONObject();
+            body.put("expiresIn", expiresInSeconds);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
 
         Request req = new Request.Builder()
                 .url(url)
