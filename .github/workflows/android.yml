@@ -2,9 +2,9 @@ name: Android CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -33,30 +33,8 @@ jobs:
       - name: Build debug APK
         run: ./gradlew --no-daemon clean assembleDebug
 
-      # Optional: build a signed release APK if you add these secrets:
-      # ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
-      - name: Decode keystore (optional)
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
-
-      - name: Build release APK (optional)
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          ./gradlew --no-daemon assembleRelease \
-            -Pandroid.injected.signing.store.file=$PWD/keystore.jks \
-            -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD \
-            -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS \
-            -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD
-
-      - name: Upload APKs
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: apks
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/release/*.apk
+          name: debug-apk
+          path: app/build/outputs/apk/debug/*.apk
