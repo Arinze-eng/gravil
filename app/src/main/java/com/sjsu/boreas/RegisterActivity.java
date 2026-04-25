@@ -145,8 +145,10 @@ public class RegisterActivity extends AppCompatActivity implements LocationListe
         log_in.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e(TAG, SUB_TAG+"CLicked login in register activity");
-                MainActivity.context.onActivityResult(0, MainActivity.LOGIN_ACTIVITY_REQUEST_CODE, null);
+                Log.e(TAG, SUB_TAG + "Clicked login in register activity");
+                android.content.Intent intent = new android.content.Intent(RegisterActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
 
@@ -273,20 +275,22 @@ public class RegisterActivity extends AppCompatActivity implements LocationListe
         //Check if all fields are filled
         if(fullNameEditor.getText().toString().equals("") || passwordStr.equals("") || confirmPasswordStr.equals("")){
             Log.e(TAG, SUB_TAG+"One of the fields isn't filled");
-            Toast.makeText(this, R.string.reg_error_unfilled, Toast.LENGTH_LONG);
+            Toast.makeText(this, R.string.reg_error_unfilled, Toast.LENGTH_LONG).show();
             return;
         }
 
         if(!passwordStr.equals(confirmPasswordStr)){
             Log.e(TAG, SUB_TAG+"The 2 provided passwords don't match.");
-            Toast.makeText(this, R.string.reg_error_passwords_dont_match, Toast.LENGTH_LONG);
+            Toast.makeText(this, R.string.reg_error_passwords_dont_match, Toast.LENGTH_LONG).show();
             return;
         }
-
         if(location==null){
-            Toast.makeText(this, "Could not get your location. Please try again in a while.", Toast.LENGTH_LONG);
-            Log.e(TAG, SUB_TAG+"Something not right with the info provided: " + fullNameEditor.getText() + ", " + "location: " + location);
-            return;
+            // Allow registration even when GPS is off / not ready.
+            // This avoids the UI appearing stuck on the register screen.
+            Toast.makeText(this, "Could not get your location. Using 0,0.", Toast.LENGTH_LONG).show();
+            location = new android.location.Location("fallback");
+            location.setLatitude(0.0);
+            location.setLongitude(0.0);
         }
 
         String name = fullNameEditor.getText().toString();
@@ -302,18 +306,32 @@ public class RegisterActivity extends AppCompatActivity implements LocationListe
 
         String[] keys = EncryptionController.getInstance().generateKeys("RSA", 514);
         String publicKey = keys[1], privateKey = keys[0];
-
         final LoggedInUser myUser = new LoggedInUser(uniqueId, name, location.getLatitude(), location.getLongitude(), hashedPassword, publicKey, privateKey);
-        localDatabaseReference.registerUser(myUser);
-        FirebaseController.pushNewUserToFIrebase(myUser, this);
 
-        Log.e(TAG, SUB_TAG+"User: " + myUser);
-        System.out.println(myUser);
+        // Do DB + Supabase write off the UI thread, then navigate immediately.
+        if(mPopupWindow==null){ showLoading(); }
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    localDatabaseReference.registerUserSync(myUser);
+                } catch (Exception ignored) {}
+                try {
+                    FirebaseController.pushNewUserToFIrebase(myUser, RegisterActivity.this);
+                } catch (Exception ignored) {}
 
-
-//        localDatabaseReference.wipeAllPreviousUserData();
-        MainActivity.context.onActivityResult(0, MainActivity.REGISTER_ACTIVITY_DONE_CODE, null);
-        if(mPopupWindow!=null)  mPopupWindow.dismiss();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mPopupWindow!=null)  mPopupWindow.dismiss();
+                        android.content.Intent intent = new android.content.Intent(RegisterActivity.this, LandingPage.class);
+                        intent.putExtra("currentUser", myUser);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
+        });
     }
 
 

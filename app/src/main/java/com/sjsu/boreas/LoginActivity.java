@@ -158,6 +158,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void failed(){
         Log.e(TAG, SUB_TAG+"Login failed, please review ur credentials, or try again later.");
+        Toast.makeText(this, "Login failed. Check your credentials or network.", Toast.LENGTH_LONG).show();
     }
 
 }

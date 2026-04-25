@@ -96,6 +96,23 @@ public class LocalDatabaseReference implements EventEmitter{
                     Log.e(TAG, SUB_TAG+"User is already registered");
                     return;
                 }
+
+    // Synchronous variant used when UI must navigate immediately after registration.
+    // Must be called off the UI thread.
+    public void registerUserSync(final LoggedInUser user){
+        Log.e(TAG, SUB_TAG+"save users locally (sync)");
+        Log.e(TAG, SUB_TAG+"Adding user to database" + user);
+        //Delete the previous registered user (if there is one)
+        if(userAlreadyIsRegistered(user)){
+            Log.e(TAG, SUB_TAG+"User is already registered");
+            return;
+        }
+        wipeAllPreviousUserData();
+        database.loggedInUserDao().insertNewUser(user);
+        user.logUserIn();
+        database.loggedInUserDao().logUserIn(user);
+        try { FirebaseController.synchContactsForUser(user, null); } catch (Exception ignored) {}
+    }
                 wipeAllPreviousUserData();
                 Log.e(TAG, SUB_TAG+"Returned from register-----------------");
                 database.loggedInUserDao().insertNewUser(user);
