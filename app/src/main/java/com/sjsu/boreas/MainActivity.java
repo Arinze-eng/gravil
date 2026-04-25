@@ -19,6 +19,7 @@ import com.sjsu.boreas.Database.LoggedInUser.LoggedInUser;
 import com.sjsu.boreas.Misc.ContextHelper;
 import com.sjsu.boreas.Notifications.CustomNotification;
 import com.sjsu.boreas.OfflineConnectionHandlers.NearbyConnectionHandler;
+import com.sjsu.boreas.OnlineConnectionHandlers.FirebaseController;
 import com.sjsu.boreas.pdel_messaging.ChatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -80,6 +81,9 @@ public class MainActivity extends AppCompatActivity {
 
         //Check if device is already registered
         checkRegistration();
+
+        // Quick Supabase connectivity check (helps confirm backend is wired)
+        verifySupabaseConnection();
     }
 
     /**
@@ -165,6 +169,44 @@ public class MainActivity extends AppCompatActivity {
                 openLogIn();
                 break;
         }
+    }
+
+    private void verifySupabaseConnection() {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    FirebaseController.fetchAllUsers(new FirebaseController.UsersFetchCallback() {
+                        @Override
+                        public void onSuccess(java.util.ArrayList<com.sjsu.boreas.Database.Contacts.User> users) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this, "Supabase connected ✅", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this, "Supabase not reachable ❌", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Supabase not reachable ❌", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
     }
 
     public void requestPermissions(){
