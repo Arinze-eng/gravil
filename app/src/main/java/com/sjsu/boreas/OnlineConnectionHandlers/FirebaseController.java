@@ -128,7 +128,7 @@ public class FirebaseController {
             String url = SUPABASE_URL + "/rest/v1/boreas_users";
             Request req = baseRequest(url)
                     .addHeader("Prefer", "resolution=merge-duplicates")
-                    .post(RequestBody.create(body.toString(), JSON))
+                    .post(RequestBody.create(JSON, body.toString()))
                     .build();
 
             http.newCall(req).enqueue(new Callback() {
@@ -342,7 +342,7 @@ public class FirebaseController {
             String url = SUPABASE_URL + "/rest/v1/boreas_contacts";
             Request req = baseRequest(url)
                     .addHeader("Prefer", "resolution=merge-duplicates")
-                    .post(RequestBody.create(body.toString(), JSON))
+                    .post(RequestBody.create(JSON, body.toString()))
                     .build();
 
             http.newCall(req).enqueue(new Callback() {
@@ -443,7 +443,7 @@ public class FirebaseController {
             String url = SUPABASE_URL + "/rest/v1/boreas_messages";
             Request req = baseRequest(url)
                     .addHeader("Prefer", "resolution=merge-duplicates")
-                    .post(RequestBody.create(body.toString(), JSON))
+                    .post(RequestBody.create(JSON, body.toString()))
                     .build();
 
             http.newCall(req).enqueue(new Callback() {
