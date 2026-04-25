@@ -12,15 +12,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Android cmdline-tools now require JDK 17+
+      - name: Set up JDK 17 (for Android SDK tools)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       # Gradle 6.1.1 / AGP 4.0.1 work reliably on Java 11
-      - name: Set up JDK 11
+      - name: Set up JDK 11 (for Gradle build)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "11"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
