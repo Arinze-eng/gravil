@@ -29,8 +29,6 @@ import com.sjsu.boreas.OnlineConnectionHandlers.FirebaseController;
 import com.sjsu.boreas.Security.EncryptionController;
 import com.sjsu.boreas.Security.PasswordManager;
 
-import org.json.JSONObject;
-
 import java.util.Random;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -54,8 +52,8 @@ public class RegisterActivity extends AppCompatActivity {
         Log.e(TAG, SUB_TAG + "On Create");
         super.onCreate(savedInstanceState);
 
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_register);
 
@@ -63,31 +61,38 @@ public class RegisterActivity extends AppCompatActivity {
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int width = displayMetrics.widthPixels;
         int margin = (width / 6);
-        registerLayout = findViewById(R.id.signup_layout);
+        registerLayout = (LinearLayout) findViewById(R.id.signup_layout);
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) registerLayout.getLayoutParams();
         params.setMargins(margin, 0, 0, 0);
 
-        fullNameEditor = findViewById(R.id.register_username);
-        password = findViewById(R.id.register_password);
-        confirmPassword = findViewById(R.id.register_confirm_password);
-        signUp = findViewById(R.id.signup);
-        logIn = findViewById(R.id.login_register_act);
+        fullNameEditor = (EditText) findViewById(R.id.register_username);
+        password = (EditText) findViewById(R.id.register_password);
+        confirmPassword = (EditText) findViewById(R.id.register_confirm_password);
+        signUp = (Button) findViewById(R.id.signup);
+        logIn = (TextView) findViewById(R.id.login_register_act);
 
         password.setTypeface(Typeface.DEFAULT);
         password.setTransformationMethod(new PasswordTransformationMethod());
         confirmPassword.setTypeface(Typeface.DEFAULT);
         confirmPassword.setTransformationMethod(new PasswordTransformationMethod());
 
-        logIn.setOnClickListener(v -> MainActivity.context.onActivityResult(0, MainActivity.LOGIN_ACTIVITY_REQUEST_CODE, null));
-
-        signUp.setOnClickListener(v -> {
-            Log.e(TAG, SUB_TAG + "Sign up clicked");
-            showLoading();
-            completeRegistration();
+        logIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.context.onActivityResult(0, MainActivity.LOGIN_ACTIVITY_REQUEST_CODE, null);
+            }
         });
 
-        // Update helper text
-        TextView helper = findViewById(R.id.permission_text);
+        signUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, SUB_TAG + "Sign up clicked");
+                showLoading();
+                completeRegistration();
+            }
+        });
+
+        TextView helper = (TextView) findViewById(R.id.permission_text);
         if (helper != null) helper.setText("*A unique 4-digit code will be generated for you after signup.");
     }
 
@@ -104,7 +109,13 @@ public class RegisterActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mPopupWindow.setElevation(12);
         }
-        findViewById(R.id.register_main).post(() -> mPopupWindow.showAtLocation(findViewById(R.id.register_main), Gravity.CENTER, 0, 0));
+
+        findViewById(R.id.register_main).post(new Runnable() {
+            @Override
+            public void run() {
+                mPopupWindow.showAtLocation(findViewById(R.id.register_main), Gravity.CENTER, 0, 0);
+            }
+        });
     }
 
     private String generate4DigitCode() {
@@ -113,20 +124,18 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     public void completeRegistration() {
-        String passwordStr = password.getText().toString();
-        String confirmPasswordStr = confirmPassword.getText().toString();
+        final String passwordStr = password.getText().toString();
+        final String confirmPasswordStr = confirmPassword.getText().toString();
 
         if (fullNameEditor.getText().toString().trim().equals("") || passwordStr.equals("") || confirmPasswordStr.equals("")) {
             Toast.makeText(this, R.string.reg_error_unfilled, Toast.LENGTH_LONG).show();
-            if (mPopupWindow != null) mPopupWindow.dismiss();
-            mPopupWindow = null;
+            dismissLoading();
             return;
         }
 
         if (!passwordStr.equals(confirmPasswordStr)) {
             Toast.makeText(this, R.string.reg_error_passwords_dont_match, Toast.LENGTH_LONG).show();
-            if (mPopupWindow != null) mPopupWindow.dismiss();
-            mPopupWindow = null;
+            dismissLoading();
             return;
         }
 
@@ -135,8 +144,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         if (hashedPassword == null) {
             Toast.makeText(this, "Password error", Toast.LENGTH_LONG).show();
-            if (mPopupWindow != null) mPopupWindow.dismiss();
-            mPopupWindow = null;
+            dismissLoading();
             return;
         }
 
@@ -144,59 +152,78 @@ public class RegisterActivity extends AppCompatActivity {
         final String publicKey = keys[1];
         final String privateKey = keys[0];
 
-        // No location required
         final double lat = 0.0;
         final double lon = 0.0;
 
-        AsyncTask.execute(() -> {
-            try {
-                boolean registered = false;
-                LoggedInUser myUser = null;
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean registered = false;
+                    LoggedInUser myUser = null;
 
-                // retry to avoid collision
-                for (int i = 0; i < 30 && !registered; i++) {
-                    String uid = generate4DigitCode();
-                    LoggedInUser candidate = new LoggedInUser(uid, name, lat, lon, hashedPassword, publicKey, privateKey);
+                    for (int i = 0; i < 30 && !registered; i++) {
+                        String uid = generate4DigitCode();
+                        LoggedInUser candidate = new LoggedInUser(uid, name, lat, lon, hashedPassword, publicKey, privateKey);
 
-                    int status = FirebaseController.registerUserSync(candidate, RegisterActivity.this);
-                    if (status == 201 || status == 200) {
-                        registered = true;
-                        myUser = candidate;
-                    } else if (status == 409) {
-                        // collision, retry
-                    } else {
-                        final int s = status;
-                        runOnUiThread(() -> Toast.makeText(RegisterActivity.this, "Signup failed (" + s + ")", Toast.LENGTH_LONG).show());
-                        break;
+                        int status = FirebaseController.registerUserSync(candidate, RegisterActivity.this);
+                        if (status == 201 || status == 200) {
+                            registered = true;
+                            myUser = candidate;
+                        } else if (status == 409) {
+                            // collision, retry
+                        } else {
+                            final int s = status;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(RegisterActivity.this, "Signup failed (" + s + ")", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            break;
+                        }
                     }
-                }
 
-                if (!registered || myUser == null) {
-                    runOnUiThread(() -> {
-                        if (mPopupWindow != null) mPopupWindow.dismiss();
-                        mPopupWindow = null;
+                    if (!registered || myUser == null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                dismissLoading();
+                            }
+                        });
+                        return;
+                    }
+
+                    localDatabaseReference.registerUser(myUser);
+                    MainActivity.currentUser = myUser;
+                    MainActivity.newAcct = true;
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dismissLoading();
+                            MainActivity.context.onActivityResult(0, MainActivity.REGISTER_ACTIVITY_DONE_CODE, null);
+                        }
                     });
-                    return;
+
+                } catch (Exception e) {
+                    Log.e(TAG, SUB_TAG + "Registration error", e);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dismissLoading();
+                            Toast.makeText(RegisterActivity.this, "Signup error", Toast.LENGTH_LONG).show();
+                        }
+                    });
                 }
-
-                localDatabaseReference.registerUser(myUser);
-                MainActivity.currentUser = myUser;
-                MainActivity.newAcct = true;
-
-                runOnUiThread(() -> {
-                    if (mPopupWindow != null) mPopupWindow.dismiss();
-                    mPopupWindow = null;
-                    MainActivity.context.onActivityResult(0, MainActivity.REGISTER_ACTIVITY_DONE_CODE, null);
-                });
-
-            } catch (Exception e) {
-                Log.e(TAG, SUB_TAG + "Registration error", e);
-                runOnUiThread(() -> {
-                    if (mPopupWindow != null) mPopupWindow.dismiss();
-                    mPopupWindow = null;
-                    Toast.makeText(RegisterActivity.this, "Signup error", Toast.LENGTH_LONG).show();
-                });
             }
         });
+    }
+
+    private void dismissLoading() {
+        try {
+            if (mPopupWindow != null) mPopupWindow.dismiss();
+        } catch (Exception ignored) {}
+        mPopupWindow = null;
     }
 }
