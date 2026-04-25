@@ -108,6 +108,7 @@ public class User implements Serializable {
     public String getName(){return name;}
     public double getLatitude(){return latitude;}
     public double getLongitude(){return longitude;}
+    public String getPublicKey(){return publicKey;}
 
     public static User convertHashMapToUser(HashMap<String, Object> user_map){
         Log.e(TAG, SUB_TAG+"converting a hash map to user object.");

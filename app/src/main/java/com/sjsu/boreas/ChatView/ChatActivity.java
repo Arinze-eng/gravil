@@ -187,6 +187,56 @@ public class ChatActivity extends AppCompatActivity implements EventListener, Fi
         });
     }
 
+    // ----------------------------
+    // Online polling (Supabase)
+    // ----------------------------
+    private void startOnlinePolling() {
+        if (onlinePollingStarted) return;
+        onlinePollingStarted = true;
+
+        final Runnable pollRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!onlinePollingStarted) return;
+
+                try {
+                    FirebaseController.fetchLatestMessages(myChatPartner.getUid(), 50, new FirebaseController.MessageFetchCallback() {
+                        @Override
+                        public void onSuccess(ArrayList<ChatMessage> messages) {
+                            // API returns newest-first; render oldest-first
+                            for (int i = messages.size() - 1; i >= 0; i--) {
+                                ChatMessage cm = messages.get(i);
+                                if (cm.mssgId == null || cm.mssgId.isEmpty()) continue;
+                                if (seenOnlineMessageIds.contains(cm.mssgId)) continue;
+                                seenOnlineMessageIds.add(cm.mssgId);
+                                addMessageOnScreen(cm);
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e(TAG, SUB_TAG + "online poll error: " + e);
+                        }
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, SUB_TAG + "online poll exception: " + e);
+                }
+
+                // poll again
+                onlinePollHandler.postDelayed(this, 2500);
+            }
+        };
+
+        onlinePollHandler.post(pollRunnable);
+    }
+
+    private void stopOnlinePolling() {
+        onlinePollingStarted = false;
+        try {
+            onlinePollHandler.removeCallbacksAndMessages(null);
+        } catch (Exception ignored) {}
+    }
+
     private void initUI(){
         Log.e(TAG, SUB_TAG+"Initializig the ui");
         recyclerView = findViewById(R.id.list_msg);

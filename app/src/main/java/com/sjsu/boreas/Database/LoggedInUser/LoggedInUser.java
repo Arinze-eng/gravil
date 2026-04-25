@@ -51,6 +51,10 @@ public class LoggedInUser extends User implements Serializable {
         return password;
     }
 
+    public String getPrivateKey(){
+        return privateKey;
+    }
+
     public Map<String, Object> toMap(){
         Log.e(TAG, SUB_TAG+"Top map");
         Map<String, Object> result = super.toMap();

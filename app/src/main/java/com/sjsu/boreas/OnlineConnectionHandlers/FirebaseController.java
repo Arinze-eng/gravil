@@ -124,7 +124,11 @@ public class FirebaseController {
     }
 
     private static String enc(String s) {
-        return URLEncoder.encode(s, StandardCharsets.UTF_8);
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (Exception e) {
+            return s;
+        }
     }
 
     private static String chatId(String uid1, String uid2) {
