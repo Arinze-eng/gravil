@@ -22,22 +22,25 @@
         android:theme="@style/AppTheme"
         tools:targetApi="34">
 
-        <activity android:name="com.sjsu.boreas.ui.auth.SignupActivity" />
-        <activity android:name="com.sjsu.boreas.ui.auth.VerifyEmailActivity" />
-        <activity android:name="com.sjsu.boreas.ui.auth.LoginActivity" />
-        <activity android:name="com.sjsu.boreas.ui.main.UsersActivity" />
-        <activity android:name="com.sjsu.boreas.ui.chat.ChatActivity" />
-        <activity android:name="com.sjsu.boreas.ui.settings.SettingsActivityNew" />
+        <activity android:name="com.sjsu.boreas.ui.auth.SignupActivity" android:exported="false" />
+        <activity android:name="com.sjsu.boreas.ui.auth.VerifyEmailActivity" android:exported="false" />
+        <activity android:name="com.sjsu.boreas.ui.auth.LoginActivity" android:exported="false" />
+        <activity android:name="com.sjsu.boreas.ui.main.UsersActivity" android:exported="false" />
+        <activity android:name="com.sjsu.boreas.ui.chat.ChatActivity" android:exported="false" />
+        <activity android:name="com.sjsu.boreas.ui.settings.SettingsActivityNew" android:exported="false" />
 
         <service
             android:name=".SSLVPNService"
+            android:exported="false"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
 
-        <activity android:name="com.sjsu.boreas.ui.SplashActivity">
+        <activity
+            android:name="com.sjsu.boreas.ui.SplashActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
