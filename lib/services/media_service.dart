@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:uuid/uuid.dart';
 import 'package:minimal_chat_app/services/supabase_client.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MediaService {
   static const _bucket = 'chat_media';
