@@ -36,51 +36,8 @@ class RegisterView extends ConsumerWidget {
           email: email,
           password: password,
         );
-
-        // Always treat sign-up as "verify email" flow.
-        if (context.mounted) {
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Verify your email'),
-              content: Text(
-                'A verification email was sent to $email. '
-                'After verifying, come back and sign in.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    try {
-                      await AuthService().resendVerificationEmail(email);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text('Verification email resent. Check inbox.'),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.toString())),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Resend email'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    ref.read(registerOrLoginProvider.notifier).state = true;
-                  },
-                  child: const Text('Go to login'),
-                ),
-              ],
-            ),
-          );
-        }
+        // After successful sign-up, the AuthView will automatically switch to ChatListView
+        // because the session is now active (email confirmation is disabled).
       } on AuthException catch (e) {
         final msg = e.message.toLowerCase();
 

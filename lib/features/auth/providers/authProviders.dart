@@ -9,7 +9,3 @@ final registerOrLoginProvider = StateProvider<bool>((ref) {
 final obscureTextProvider = StateProvider<bool>((ref) {
   return false;
 });
-
-// When sign-in fails due to unverified email, show resend button
-final showResendVerificationProvider = StateProvider<bool>((ref) => false);
-final lastAuthEmailProvider = StateProvider<String>((ref) => '');

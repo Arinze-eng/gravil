@@ -14,8 +14,6 @@ class LoginView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Future<void> login() async {
-      ref.read(showResendVerificationProvider.notifier).state = false;
-
       final email = emailController.text.trim();
       final password = passwordController.text.trim();
 
@@ -25,13 +23,6 @@ class LoginView extends ConsumerWidget {
           password: password,
         );
       } on AuthException catch (e) {
-        // Common Supabase message when email confirmation is enabled
-        final msg = e.message.toLowerCase();
-        if (msg.contains('email') && msg.contains('confirm')) {
-          ref.read(lastAuthEmailProvider.notifier).state = email;
-          ref.read(showResendVerificationProvider.notifier).state = true;
-        }
-
         if (context.mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(e.message)));
@@ -43,8 +34,6 @@ class LoginView extends ConsumerWidget {
         }
       }
     }
-
-    final showResend = ref.watch(showResendVerificationProvider);
 
     return Scaffold(
       body: Center(
@@ -90,38 +79,6 @@ class LoginView extends ConsumerWidget {
                   ),
                 ],
               ),
-              if (showResend) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () async {
-                          final email = ref.read(lastAuthEmailProvider);
-                          try {
-                            await AuthService().resendVerificationEmail(email);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Verification email resent. Please check your inbox.'),
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
-                          }
-                        },
-                        child: const Text('Resend verification email'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
