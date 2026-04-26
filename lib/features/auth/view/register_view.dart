@@ -32,12 +32,25 @@ class RegisterView extends ConsumerWidget {
       }
 
       try {
-        await AuthService().signUpWithEmailPassword(
+        final resp = await AuthService().signUpWithEmailPassword(
           email: email,
           password: password,
         );
-        // After successful sign-up, the AuthView will automatically switch to ChatListView
-        // because the session is now active (email confirmation is disabled).
+
+        // If email confirmations are disabled in Supabase, `resp.session` will be non-null
+        // and AuthView will immediately switch to ChatListView.
+        // If confirmations are enabled, there is no session yet — prompt the user and
+        // switch to Login.
+        if (resp.session == null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Check your email to confirm your account, then login.',
+              ),
+            ),
+          );
+          ref.read(registerOrLoginProvider.notifier).state = true;
+        }
       } on AuthException catch (e) {
         final msg = e.message.toLowerCase();
 
