@@ -24,7 +24,7 @@ subprojects { subproject ->
     subproject.plugins.withId('com.android.library') {
         try {
             if (subproject.android.namespace == null || subproject.android.namespace.toString().trim().isEmpty()) {
-                subproject.android.namespace = "com.example.${subproject.name}"
+                subproject.android.namespace = (subproject.name == "camerax") ? "dev.yanshouwang.camerax" : "com.example.${subproject.name}"
             }
             // Some plugins still reference BuildConfig; AGP 8+ disables it by default.
             subproject.android.buildFeatures.buildConfig = true
