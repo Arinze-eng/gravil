@@ -7,6 +7,13 @@ plugins {
 android {
     namespace = "com.example.gravil"
 
+    packaging {
+        jniLibs {
+            // keep only what we need per ABI when split-per-abi is used
+            useLegacyPackaging = false
+        }
+    }
+
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -30,8 +37,19 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.debug
+            // Enable shrinking for smaller APKs (especially with --split-per-abi)
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile('proguard-android-optimize.txt'),
+                'proguard-rules.pro'
+            )
         }
     }
+}
+
+dependencies {
+    implementation "com.ooimi.library:tun2socks:1.0.4"
 }
 
 flutter {

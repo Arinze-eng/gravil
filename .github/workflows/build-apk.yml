@@ -28,11 +28,11 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build debug APK
-        run: flutter build apk --debug --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+      - name: Build release APKs (split per ABI)
+        run: flutter build apk --release --split-per-abi --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
-      - name: Upload APK artifact
+      - name: Upload arm64-v8a APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: gravil-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: gravil-apk-arm64
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
