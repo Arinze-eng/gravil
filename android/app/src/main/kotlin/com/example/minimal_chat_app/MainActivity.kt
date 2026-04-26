@@ -2,6 +2,7 @@ package com.example.minimal_chat_app
 
 import android.content.Intent
 import android.net.VpnService
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -55,7 +56,7 @@ class MainActivity: FlutterActivity() {
             putExtra("sni", args["sni"] as String)
             putExtra("payload", args["payload"] as String)
         }
-        startService(intent)
+        ContextCompat.startForegroundService(this, intent)
     }
 
     private fun stopVpnService() {

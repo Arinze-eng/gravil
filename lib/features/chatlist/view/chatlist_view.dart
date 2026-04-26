@@ -4,6 +4,7 @@ import 'package:minimal_chat_app/features/chatlist/service/chat_service.dart';
 import 'package:minimal_chat_app/features/chatlist/view/user_tile.dart';
 import 'package:minimal_chat_app/features/profile/view/profile_view.dart';
 import 'package:minimal_chat_app/features/qr_scanner/view/qr_scanner_view.dart';
+import 'package:minimal_chat_app/features/chatlist/view/add_user_manual_view.dart';
 import 'package:minimal_chat_app/services/vpn_service.dart' as vpn;
 import 'package:permission_handler/permission_handler.dart';
 
@@ -86,6 +87,8 @@ class _ChatListViewState extends State<ChatListView> {
           child: StreamBuilder(
               stream: ChatService().getFriendList(),
               builder: (context, snapshot) {
+                // update presence (best-effort)
+                ChatService().updateMyLastSeen();
                 if (snapshot.hasError) {
                   return Center(
                     child: Text(snapshot.error.toString()),
@@ -112,6 +115,46 @@ class _ChatListViewState extends State<ChatListView> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
+          // quick options: manual search or QR
+          if (!mounted) return;
+          await showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.search),
+                      title: const Text('Search users'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AddUserManualView(),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.qr_code_rounded),
+                      title: const Text('Scan QR code'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        // continue to QR flow below
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+
+          // If user chose QR, fall through to QR scan.
+          // (If they chose Search, we already navigated.)
+
+          var cameraStatus = await Permission.camera.status;
           var cameraStatus = await Permission.camera.status;
           if (!cameraStatus.isGranted) {
             await Permission.camera.request();

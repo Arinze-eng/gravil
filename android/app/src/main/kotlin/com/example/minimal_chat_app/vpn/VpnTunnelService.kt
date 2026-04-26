@@ -1,9 +1,14 @@
 package com.example.minimal_chat_app.vpn
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
 import android.net.VpnService
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
 import java.io.FileInputStream
@@ -12,6 +17,30 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class VpnTunnelService : VpnService() {
+    private val notificationId = 1001
+    private val notificationChannelId = "minimal_chat_vpn"
+
+    private fun startForegroundNotification() {
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                notificationChannelId,
+                "VPN",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            nm.createNotificationChannel(channel)
+        }
+
+        val notification: Notification = NotificationCompat.Builder(this, notificationChannelId)
+            .setContentTitle("VPN connected")
+            .setContentText("Secure tunnel is running")
+            .setSmallIcon(android.R.drawable.stat_sys_vpn_ic)
+            .setOngoing(true)
+            .build()
+
+        startForeground(notificationId, notification)
+    }
+
     private var vpnInterface: ParcelFileDescriptor? = null
     private var sshSession: Session? = null
     private val isRunning = AtomicBoolean(false)
@@ -32,6 +61,7 @@ class VpnTunnelService : VpnService() {
                 val pass = intent.getStringExtra("pass") ?: ""
                 val sni = intent.getStringExtra("sni") ?: ""
                 val payload = intent.getStringExtra("payload") ?: ""
+                startForegroundNotification()
                 startVpn(server, port, user, pass, sni, payload)
             }
             ACTION_DISCONNECT -> stopVpn()
@@ -59,9 +89,10 @@ class VpnTunnelService : VpnService() {
                 session.connect(30000)
                 sshSession = session
 
-                // Set up dynamic port forwarding (SOCKS proxy)
+                // Set up dynamic port forwarding (SOCKS5 proxy)
+                // NOTE: This exposes a local SOCKS5 proxy at 127.0.0.1:1080
                 val localPort = 1080
-                session.setPortForwardingL(localPort, "127.0.0.1", 1080)
+                session.setPortForwardingD(localPort)
 
                 // Establish VPN interface
                 val builder = Builder()
@@ -72,11 +103,19 @@ class VpnTunnelService : VpnService() {
                 builder.setSession("MinimalChatVPN")
                 
                 vpnInterface = builder.establish()
-                
-                // Forward traffic from tun to SOCKS (simplified for this implementation)
-                // In a real production app, you'd use a library like tun2socks here.
-                // For this task, we'll assume the SSH tunnel is the core requirement.
-                
+
+                // Keep the TUN interface alive so Android shows the VPN key icon.
+                // Full traffic tunneling requires a tun2socks implementation.
+                vpnInterface?.fileDescriptor?.let { fd ->
+                    val input = FileInputStream(fd)
+                    val buffer = ByteArray(32767)
+                    while (isRunning.get()) {
+                        // Read and drop packets (placeholder). Replace with tun2socks for real routing.
+                        val n = input.read(buffer)
+                        if (n <= 0) break
+                    }
+                }
+
                 Log.i(TAG, "VPN Started")
             } catch (e: Exception) {
                 Log.e(TAG, "VPN Start failed", e)
@@ -88,6 +127,7 @@ class VpnTunnelService : VpnService() {
 
     private fun stopVpn() {
         isRunning.set(false)
+        try { stopForeground(STOP_FOREGROUND_REMOVE) } catch (_: Exception) {}
         sshSession?.disconnect()
         vpnInterface?.close()
         vpnInterface = null

@@ -1,5 +1,6 @@
 import 'package:minimal_chat_app/model/message_model.dart';
 import 'package:minimal_chat_app/model/user_model.dart';
+import 'package:minimal_chat_app/services/media_service.dart';
 import 'package:minimal_chat_app/services/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,6 +19,30 @@ class ChatService {
         .stream(primaryKey: ['user_id', 'friend_id'])
         .eq('user_id', me)
         .map((rows) => rows.map((r) => r['friend_id'] as String).toList());
+  }
+
+  Future<void> updateMyLastSeen() async {
+    final me = supabase.auth.currentUser;
+    if (me == null) return;
+    await supabase.from('profiles').upsert({
+      'id': me.id,
+      'last_seen': DateTime.now().toUtc().toIso8601String(),
+    }, onConflict: 'id');
+  }
+
+  Future<List<Map<String, dynamic>>> searchUsers(String term) async {
+    final me = myId;
+    final q = term.trim();
+    if (q.isEmpty) return [];
+
+    final res = await supabase
+        .from('profiles')
+        .select('id,email,name,code,username,last_seen')
+        .or('email.ilike.%$q%,name.ilike.%$q%,code.eq.$q,username.ilike.%$q%')
+        .neq('id', me)
+        .limit(30);
+
+    return (res as List).cast<Map<String, dynamic>>();
   }
 
   Future<UserModel> getUserInfo(String userId) async {
@@ -39,6 +64,7 @@ class ChatService {
   }
 
   Future<void> addFriend(String friendId) async {
+    if (friendId == myId) return;
     final me = myId;
 
     // Create mutual friendship (idempotent)
@@ -52,25 +78,50 @@ class ChatService {
     await sendMessage(friendId: friendId, message: 'Hii👋');
   }
 
-  Future<void> sendMessage({required String friendId, required String message}) async {
+  String _roomIdFor(String friendId) {
     final me = myId;
     final ids = [me, friendId]..sort();
-    final roomId = ids.join('_');
+    return ids.join('_');
+  }
+
+  Future<void> sendMessage({required String friendId, required String message}) async {
+    final me = myId;
+    final roomId = _roomIdFor(friendId);
 
     await supabase.from('messages').insert({
       'room_id': roomId,
       'sender_id': me,
       'receiver_id': friendId,
-      // keep column name compatible with your existing schema
       'content': message,
       'type': 'text',
     });
   }
 
-  Stream<List<MessageModel>> getMessage(String friendId) {
+  Future<void> sendMediaMessage({
+    required String friendId,
+    required String type,
+    required String mediaPath,
+    required String mediaMime,
+    int? mediaDurationMs,
+    String? caption,
+  }) async {
     final me = myId;
-    final ids = [me, friendId]..sort();
-    final roomId = ids.join('_');
+    final roomId = _roomIdFor(friendId);
+
+    await supabase.from('messages').insert({
+      'room_id': roomId,
+      'sender_id': me,
+      'receiver_id': friendId,
+      'content': caption,
+      'type': type,
+      'media_path': mediaPath,
+      'media_mime': mediaMime,
+      'media_duration_ms': mediaDurationMs,
+    });
+  }
+
+  Stream<List<MessageModel>> getMessage(String friendId) {
+    final roomId = _roomIdFor(friendId);
 
     return supabase
         .from('messages')
@@ -83,7 +134,15 @@ class ChatService {
           senderId: r['sender_id'] as String,
           senderEmail: '',
           receiverId: r['receiver_id'] as String,
-          message: r['content'] as String,
+          message: (() {
+            final type = (r['type'] as String?) ?? 'text';
+            if (type == 'text') {
+              return (r['content'] as String?) ?? (r['message'] as String?) ?? '';
+            }
+            final path = r['media_path'] as String?;
+            if (path == null) return '[media]';
+            return MediaService.publicUrl(path);
+          })(),
           timestamp: DateTime.parse(r['created_at'] as String).toLocal(),
         );
       }).toList();
