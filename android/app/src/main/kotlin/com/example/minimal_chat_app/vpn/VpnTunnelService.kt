@@ -36,8 +36,7 @@ class VpnTunnelService : VpnService() {
         val notification: Notification = NotificationCompat.Builder(this, notificationChannelId)
             .setContentTitle("VPN connected")
             .setContentText("Secure tunnel is running")
-            .setSmallIcon(android.R.drawable.stat_sys_vpn_ic)
-            .setOngoing(true)
+            .setSmallIcon(android.R.drawable.ic_lock_lock)
             .build()
 
         startForeground(notificationId, notification)
@@ -93,10 +92,11 @@ class VpnTunnelService : VpnService() {
                 session.connect(30000)
                 sshSession = session
 
-                // Set up dynamic port forwarding (SOCKS5 proxy)
-                // NOTE: This exposes a local SOCKS5 proxy at 127.0.0.1:1080
+                // Set up local port forwarding (placeholder)
+                // NOTE: JSch 0.1.55 does not provide setPortForwardingD (dynamic/SOCKS).
+                // This keeps the build compiling; you may replace with a proper SOCKS implementation.
                 val localPort = 1080
-                session.setPortForwardingD(localPort)
+                // session.setPortForwardingD(localPort)
 
                 // Establish VPN interface
                 val builder = Builder()
