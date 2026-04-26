@@ -213,8 +213,7 @@ class VpnTunnelService : VpnService() {
     return builder
       .setContentTitle("Gravil VPN")
       .setContentText(text)
-      .setSmallIcon(android.R.drawable.stat_sys_vpn_ic)
-      .setOngoing(true)
+      .setSmallIcon(R.mipmap.ic_launcher)
       .build()
   }
 
