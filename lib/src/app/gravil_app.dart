@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../auth/login_screen.dart';
 import '../auth/signup_screen.dart';
 import '../chat/home_screen.dart';
@@ -14,7 +15,8 @@ final _routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/login',
     redirect: (context, state) {
-      final session = supabase.auth.currentSession;
+      // Supabase is initialized in app initState. If it is still booting, don't redirect.
+      final session = Supabase.instance.client.auth.currentSession;
       final loggedIn = session != null;
       final loggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/signup';
       if (!loggedIn && !loggingIn) return '/login';
