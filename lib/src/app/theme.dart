@@ -21,10 +21,9 @@ class AppTheme {
         backgroundColor: navy,
         foregroundColor: Colors.white,
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: Colors.white,
         surfaceTintColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
