@@ -65,7 +65,7 @@ dev_dependencies:
 
 dependency_overrides:
   record_linux: 0.7.2
-  record_platform_interface: 1.4.2
+  record_platform_interface: 1.5.0
 
 
 
