@@ -4,6 +4,7 @@ import com.jcraft.jsch.Proxy
 import com.jcraft.jsch.SocketFactory
 import okhttp3.*
 import okio.ByteString
+import okio.ByteString.Companion.toByteString
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.PipedInputStream
@@ -76,7 +77,7 @@ class WebSocketProxy(
                 while (true) {
                     val read = pipedIn.read(buffer)
                     if (read == -1) break
-                    webSocket?.send(ByteString.of(buffer, 0, read))
+                    webSocket?.send(buffer.toByteString(0, read))
                 }
             } catch (e: Exception) {
                 // Handle error
