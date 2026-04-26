@@ -1,38 +1,21 @@
-# Gravil (Flutter + Supabase)
+# Minimal-Chat-App | [Link to Apk](https://drive.google.com/file/d/14inYAgsFCsC3yib2q2AK0W-N0hN01QGV/view?usp=drive_link)
+![myExpenses](https://github.com/purveshxd/minimal_chat_app/blob/main/media/login-register.png "minimal_chat_app")
 
-A navy-blue chat app:
-- Email + password sign up/sign in (no email verification — configure this in Supabase Auth settings)
-- User profiles with **unique 5-digit public ID** (`public_id`) visible in search
-- 1:1 chat: text, image (max **4MB**), voice note (max **5MB**), files
-- Last seen (updated every 30s while logged in)
-- Read receipts (single tick = sent, double tick = read)
-- Optional **VPN toggle** (Android VPNService scaffold + platform channel)
 
-## Configure Supabase
+![myExpenses](https://github.com/purveshxd/minimal_chat_app/blob/f06e0ee1c77b8d55a618a136ed2f615abd922268/media/transactions.png)
 
-Build/run with:
 
-- `--dart-define=SUPABASE_URL=...`
-- `--dart-define=SUPABASE_ANON_KEY=...`
+![myExpenses](https://github.com/purveshxd/minimal_chat_app/blob/main/media/login-register-1.png)
 
-### Database
-Apply SQL migration from `supabase/migrations/0001_init.sql`.
 
-### Storage buckets
-Create buckets:
-- `images` (public)
-- `voice` (public)
-- `files` (public)
+![myExpenses](https://github.com/purveshxd/minimal_chat_app/blob/main/media/transactions-1.png)
 
-## GitHub Actions
+## Features:
+- **Firebase Login:** A chat app with firebase login and register functions.
+- **QR Support:** QR helps user add friend to their list and chat with them, simply scan and chat.
+***
 
-Workflow builds a debug APK on each push.
 
-## VPN Note
 
-VPN is scaffolded in `android/.../VpnTunnelService.kt` and wired to Flutter via `MethodChannel('gravil/vpn')`.
-To make it a real sing-box/Xray tunnel, plug sing-box core execution + config generation into that service.
 
-## CI Secrets
-This repo has GitHub Actions secrets set: SUPABASE_URL and SUPABASE_ANON_KEY.
 
