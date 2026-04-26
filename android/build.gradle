@@ -21,16 +21,12 @@ tasks.register("clean", Delete) {
 // Some older Flutter plugins ship without an Android Gradle `namespace`.
 // Newer AGP requires it, so we default it to a stable value per module.
 subprojects { subproject ->
-    afterEvaluate {
-        if (subproject.hasProperty('android')) {
-            try {
-                def ns = subproject.android.namespace
-                if (ns == null || ns.toString().trim().isEmpty()) {
-                    subproject.android.namespace = "com.example.${subproject.name}"
-                }
-            } catch (Exception ignored) {
-                // ignore non-Android modules
+    subproject.plugins.withId('com.android.library') {
+        try {
+            if (subproject.android.namespace == null || subproject.android.namespace.toString().trim().isEmpty()) {
+                subproject.android.namespace = "com.example.${subproject.name}"
             }
+        } catch (Exception ignored) {
         }
     }
 }
