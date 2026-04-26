@@ -70,14 +70,21 @@ class _RecentChatsList extends StatelessWidget {
 
     final stream = supabase
         .from('messages')
+        // Stream newest messages and filter locally.
+        // (Supabase stream filter builder does not support .or)
         .stream(primaryKey: ['id'])
-        .or('sender_id.eq.$myId,receiver_id.eq.$myId')
-        .order('created_at', ascending: false);
+        .order('created_at', ascending: false)
+        .limit(200);
 
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: stream,
       builder: (context, snap) {
-        final msgs = (snap.data ?? const []).cast<Map<String, dynamic>>();
+        final msgsAll = (snap.data ?? const []).cast<Map<String, dynamic>>();
+        final msgs = msgsAll.where((m) {
+          final s = m['sender_id'] as String?;
+          final r = m['receiver_id'] as String?;
+          return s == myId || r == myId;
+        }).toList();
         if (msgs.isEmpty) {
           return Card(
             child: Padding(

@@ -18,16 +18,18 @@ String get supabaseAnonKey =>
 
 SupabaseClient get supabase => Supabase.instance.client;
 
-Future<void> initSupabase() async {
-  // Safe to call multiple times.
-  if (Supabase.instance.client.auth.currentSession != null || Supabase.instance.client.options.headers.isNotEmpty) {
-    // already initialized in this runtime
-    return;
-  }
+bool _supabaseInited = false;
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-    realtimeClientOptions: const RealtimeClientOptions(eventsPerSecond: 20),
-  );
+Future<void> initSupabase() async {
+  if (_supabaseInited) return;
+  try {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      realtimeClientOptions: const RealtimeClientOptions(eventsPerSecond: 20),
+    );
+  } catch (_) {
+    // If already initialized in this runtime, ignore.
+  }
+  _supabaseInited = true;
 }
