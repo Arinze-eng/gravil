@@ -9,6 +9,8 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import hev.htproxy.TProxyService
+import java.io.File
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
 import java.io.FileInputStream
@@ -45,6 +47,8 @@ class VpnTunnelService : VpnService() {
     private var sshSession: Session? = null
     private val isRunning = AtomicBoolean(false)
     private var tunnelThread: Thread? = null
+    private var tproxy: TProxyService? = null
+    private var configFile: File? = null
 
     companion object {
         const val ACTION_CONNECT = "com.example.minimal_chat_app.vpn.CONNECT"
@@ -104,19 +108,35 @@ class VpnTunnelService : VpnService() {
                 
                 vpnInterface = builder.establish()
 
-                // Keep the TUN interface alive so Android shows the VPN key icon.
-                // Full traffic tunneling requires a tun2socks implementation.
-                vpnInterface?.fileDescriptor?.let { fd ->
-                    val input = FileInputStream(fd)
-                    val buffer = ByteArray(32767)
-                    while (isRunning.get()) {
-                        // Read and drop packets (placeholder). Replace with tun2socks for real routing.
-                        val n = input.read(buffer)
-                        if (n <= 0) break
-                    }
-                }
+                // --- tun2socks bridge (TUN -> SOCKS5) ---
+                // We expose a local SOCKS5 proxy via SSH dynamic forwarding on 127.0.0.1:1080.
+                // Now bridge the TUN interface to that SOCKS5 proxy.
+                val pfd = vpnInterface ?: throw IllegalStateException("VPN interface not established")
+                val tunFd = pfd.fd
 
-                Log.i(TAG, "VPN Started")
+                // Write config file expected by HevSocks5Tunnel
+                val cfg = """
+                tunnel:
+                  name: tun0
+                  mtu: 1500
+                  multi-queue: false
+                  ipv4: 10.0.0.2
+                  ipv6: 'fc00::2'
+                socks5:
+                  port: 1080
+                  address: 127.0.0.1
+                  udp: 'tcp'
+                """.trimIndent()
+
+                val f = File(filesDir, "hev_tproxy.yml")
+                f.writeText(cfg)
+                configFile = f
+
+                val svc = TProxyService()
+                tproxy = svc
+                svc.TProxyStartService(f.absolutePath, tunFd)
+
+                Log.i(TAG, "VPN Started (tun2socks active)")
             } catch (e: Exception) {
                 Log.e(TAG, "VPN Start failed", e)
                 stopVpn()
@@ -128,10 +148,17 @@ class VpnTunnelService : VpnService() {
     private fun stopVpn() {
         isRunning.set(false)
         try { stopForeground(STOP_FOREGROUND_REMOVE) } catch (_: Exception) {}
+        try {
+            tproxy?.TProxyStopService()
+        } catch (_: Exception) {
+        }
+        tproxy = null
+
         sshSession?.disconnect()
         vpnInterface?.close()
         vpnInterface = null
         sshSession = null
+        configFile = null
         Log.i(TAG, "VPN Stopped")
     }
 

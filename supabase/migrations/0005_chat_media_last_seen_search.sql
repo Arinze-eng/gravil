@@ -26,8 +26,16 @@ alter table public.messages
   add column if not exists media_mime text,
   add column if not exists media_duration_ms int;
 
--- Keep compatibility: if old column `message` is used, mirror into `content`
-update public.messages set content = coalesce(content, message) where content is null;
+-- Keep compatibility: if old column `message` exists, mirror into `content`
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'messages' and column_name = 'message'
+  ) then
+    execute 'update public.messages set content = coalesce(content, message) where content is null';
+  end if;
+end $$;
 
 create index if not exists messages_room_id_created_at_idx on public.messages(room_id, created_at);
 

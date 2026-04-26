@@ -155,6 +155,7 @@ class _ChatListViewState extends State<ChatListView> {
           // (If they chose Search, we already navigated.)
 
           var cameraStatus = await Permission.camera.status;
+          var cameraStatus = await Permission.camera.status;
           if (!cameraStatus.isGranted) {
             await Permission.camera.request();
           }
