@@ -32,3 +32,7 @@ Workflow builds a debug APK on each push.
 
 VPN is scaffolded in `android/.../VpnTunnelService.kt` and wired to Flutter via `MethodChannel('gravil/vpn')`.
 To make it a real sing-box/Xray tunnel, plug sing-box core execution + config generation into that service.
+
+## CI Secrets
+This repo has GitHub Actions secrets set: SUPABASE_URL and SUPABASE_ANON_KEY.
+
