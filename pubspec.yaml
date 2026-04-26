@@ -63,16 +63,6 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
 
-dependency_overrides:
-  record_linux: 0.7.2
-  record_platform_interface: 1.5.0
-
-
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
