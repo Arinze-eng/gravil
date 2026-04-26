@@ -1,6 +1,0 @@
-{
-  "serverAddress": "172.67.187.6",
-  "serverPort": 443,
-  "sni": "ssh-us-1.optnl.com",
-  "payload": "GET / HTTP/1.1\r\nHost: ssh-us-1.optnl.com\r\nConnection: Upgrade\r\nUser-Agent: [ua]\r\nUpgrade: websocket\r\n\r\n"
-}
