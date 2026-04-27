@@ -200,6 +200,8 @@ class StatusPageView extends StatefulWidget {
   final bool vpnBusy;
   final Future<void> Function(bool enabled)? onToggleVpn;
   final Future<String> Function(String usingPeerID)? onUpdateProxy;
+  final Future<void> Function(bool enabled)? onToggleOfferExitForAll;
+  final bool offerExitForAllBusy;
   final Future<void> Function()? onShowQR;
   final Future<void> Function()? onShowSettings;
 

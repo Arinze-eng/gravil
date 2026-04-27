@@ -43,8 +43,8 @@ class _AppShellState extends State<AppShell> {
     final maxX = (size.width - _fabSize - _fabMargin).clamp(0, double.infinity);
     final maxY = (size.height - _fabSize - _fabMargin).clamp(0, double.infinity);
     return Offset(
-      raw.dx.clamp(_fabMargin, maxX),
-      raw.dy.clamp(_fabMargin, maxY),
+      raw.dx.clamp(_fabMargin, maxX).toDouble(),
+      raw.dy.clamp(_fabMargin, maxY).toDouble(),
     );
   }
 
