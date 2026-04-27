@@ -8,7 +8,6 @@ import (
   "sync"
 
   "github.com/xjasonlyu/tun2socks/v2/engine"
-  tlog "github.com/xjasonlyu/tun2socks/v2/log"
 )
 
 var (
@@ -37,8 +36,7 @@ func StartVPN(tunFD int32, socks5ProxyAddr string, mtu int32) (err error) {
     mtu = 1500
   }
 
-  // Keep logs quiet by default; Android UI can surface errors.
-  tlog.SetLevel(tlog.Silent)
+  // Logs are managed by the host app.
 
   key := &engine.Key{}
   key.Device = fmt.Sprintf("fd://%d", tunFD)
