@@ -25,7 +25,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.anywherelan.awl"
-    compileSdk = flutter.compileSdkVersion
+    // Override to satisfy recent AndroidX deps (requires compileSdk 36+)
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
