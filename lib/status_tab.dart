@@ -38,6 +38,8 @@ class _StatusPageState extends ConsumerState<StatusPage> {
       ]);
     }
 
+    return response;
+  }
 
   Future<void> _onToggleOfferExitForAll(bool enabled) async {
     if (_offerAllBusy) return;
@@ -122,8 +124,6 @@ class _StatusPageState extends ConsumerState<StatusPage> {
         });
       }
     }
-  }
-    return response;
   }
 
   Future<void> _onShowQR(MyPeerInfo peerInfo) async {

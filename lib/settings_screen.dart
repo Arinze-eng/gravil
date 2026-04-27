@@ -28,16 +28,18 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
       String? response;
       if (kIsWeb) {
         response = await FileSaver.instance.saveFile(
-          name: "config_awl.json",
+          name: "config_awl",
           bytes: exportedSettings,
+          fileExtension: "json",
           mimeType: MimeType.json,
         );
       } else {
         // saveAs is not implemented on web
         // see https://github.com/incrediblezayed/file_saver/issues/130
         response = await FileSaver.instance.saveAs(
-          name: "config_awl.json",
+          name: "config_awl",
           bytes: exportedSettings,
+          fileExtension: "json",
           mimeType: MimeType.json,
         );
       }
