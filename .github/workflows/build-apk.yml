@@ -27,7 +27,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.25.0'
           cache: true
 
       - name: Build Android AAR (gomobile)
@@ -38,6 +38,7 @@ jobs:
           mkdir -p android/app/src/main/libs
           cd cmd/gomobile-lib
           gomobile bind -androidapi 24 -trimpath \
+            -ldflags "-linkmode=external -extldflags=-Wl,-z,max-page-size=16384 -s -w -checklinkname=0" \
             -o ../../android/app/src/main/libs/anywherelan.aar \
             -target=android .
 
