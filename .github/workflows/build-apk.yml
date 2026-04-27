@@ -24,6 +24,23 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Build Android AAR (gomobile)
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          go install golang.org/x/mobile/cmd/gobind@latest
+          gomobile init
+          mkdir -p android/app/src/main/libs
+          cd cmd/gomobile-lib
+          gomobile bind -androidapi 24 -trimpath \
+            -o ../../android/app/src/main/libs/anywherelan.aar \
+            -target=android .
+
       - name: Flutter pub get
         run: flutter pub get
 
