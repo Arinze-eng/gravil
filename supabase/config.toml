@@ -1,6 +1,0 @@
-# Supabase local development configuration
-# Docs: https://supabase.com/docs/guides/cli/config#auth.email.enable_confirmations
-
-[auth.email]
-# Make email+password signup/login smooth locally (no email confirmation)
-enable_confirmations = false
